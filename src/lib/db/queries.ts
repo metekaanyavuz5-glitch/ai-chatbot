@@ -1,6 +1,6 @@
 import "server-only";
 import { and, desc, eq } from "drizzle-orm";
-import { db } from "./client";
+import { db, ensureSchema } from "./client";
 import { chats, messages, type DbMessage } from "./schema";
 import { DEFAULT_MODEL_ID } from "@/lib/ai/models";
 
@@ -13,6 +13,7 @@ export async function createChat({
   title?: string;
   modelId?: string;
 }) {
+  await ensureSchema();
   const now = new Date();
   await db.insert(chats).values({
     id,
@@ -25,15 +26,18 @@ export async function createChat({
 }
 
 export async function getChatById(id: string) {
+  await ensureSchema();
   const rows = await db.select().from(chats).where(eq(chats.id, id)).limit(1);
   return rows[0] ?? null;
 }
 
 export async function getAllChats() {
+  await ensureSchema();
   return db.select().from(chats).orderBy(desc(chats.updatedAt));
 }
 
 export async function updateChatTitle(id: string, title: string) {
+  await ensureSchema();
   await db
     .update(chats)
     .set({ title, updatedAt: new Date() })
@@ -41,15 +45,18 @@ export async function updateChatTitle(id: string, title: string) {
 }
 
 export async function touchChat(id: string) {
+  await ensureSchema();
   await db.update(chats).set({ updatedAt: new Date() }).where(eq(chats.id, id));
 }
 
 export async function deleteChat(id: string) {
+  await ensureSchema();
   await db.delete(messages).where(eq(messages.chatId, id));
   await db.delete(chats).where(eq(chats.id, id));
 }
 
 export async function getMessagesByChatId(chatId: string) {
+  await ensureSchema();
   return db
     .select()
     .from(messages)
@@ -59,6 +66,7 @@ export async function getMessagesByChatId(chatId: string) {
 
 export async function saveMessages(rows: DbMessage[]) {
   if (rows.length === 0) return;
+  await ensureSchema();
   await db.insert(messages).values(rows);
 }
 

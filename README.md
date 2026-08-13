@@ -17,7 +17,7 @@ Next.js 16 + Vercel AI SDK ile geliştirilmiş, Amazon Bedrock üzerinden çoklu
 - **Next.js 16** (App Router) + **TypeScript** + **Tailwind CSS v4**
 - **Vercel AI SDK** (`ai`, `@ai-sdk/react`, `@ai-sdk/amazon-bedrock`) — streaming, araç (tool) çağırma, çoklu adım
 - **shadcn/ui** (Radix UI tabanlı) + `Streamdown` (stream-safe markdown render)
-- **Drizzle ORM + better-sqlite3** — yerel, kurulum gerektirmeyen sohbet geçmişi
+- **Drizzle ORM + @vercel/postgres** — bulut tabanlı (Neon) sohbet geçmişi
 - **rss-parser** — haber aracı için
 
 ## Kurulum
@@ -48,11 +48,19 @@ Bu proje modellere **Amazon Bedrock** üzerinden erişir — tek bir AWS hesabı
 
 Model kataloğu `src/lib/ai/models.ts` içinde tanımlı — hesabında farklı modeller etkinse buradaki listeyi güncelleyebilirsin. Model ID'leri Bedrock'un cross-region inference profile formatındadır (`us.anthropic....` gibi); bir modele erişimin yoksa sohbet ekranında anlaşılır bir hata mesajı gösterilir.
 
+## Veritabanı kurulumu (Vercel Postgres)
+
+Sohbet geçmişi Vercel Postgres (Neon) üzerinde tutulur — yerel bir dosya değil, bulut tabanlı bir bağlantı gerektirir (hem local geliştirmede hem deploy'da).
+
+1. Vercel dashboard'da projenin **Storage** sekmesinden **Create Database → Postgres** ile bir veritabanı oluştur. Bu, projeye otomatik olarak `POSTGRES_URL` (ve ilgili diğer) ortam değişkenlerini ekler.
+2. Vercel'in verdiği `POSTGRES_URL` değerini kopyalayıp yerel `.env.local` dosyana ekle (aynı veritabanını local'de de kullanabilirsin, veya `vercel env pull .env.local` ile otomatik çekebilirsin).
+3. Tablolar ilk sorguda otomatik oluşturulur (`src/lib/db/client.ts` içindeki `ensureSchema`) — ayrı bir migration adımı gerekmez.
+
 ## Bilinen sınırlar
 
 - **LinkedIn**: Resmi bir API kullanılmıyor; herkese açık sayfa `r.jina.ai` üzerinden okunmaya çalışılıyor. LinkedIn oturum duvarı (authwall) gösterirse profil okunamaz — bu açıkça belirtilir.
 - **YouTube özeti**: Videonun altyazı/transkripti (otomatik veya manuel) yoksa özetlenemez.
-- **Sohbet geçmişi**: Tek kullanıcılı, yerel bir SQLite dosyasında tutulur (`~/.exposure-ai-chatbot/chat.db`) — çoklu kullanıcı/giriş sistemi yoktur, kapsam dışı bırakıldı.
+- **Sohbet geçmişi**: Tek kullanıcılı, Vercel Postgres (Neon) üzerinde tutulur — çoklu kullanıcı/giriş sistemi yoktur, kapsam dışı bırakıldı.
 
 ## Proje yapısı
 
